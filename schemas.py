@@ -1,5 +1,25 @@
-from sqlmodel import Relationship
-from sqlmodel import SQLModel, Field
+from passlib.context import CryptContext
+from sqlmodel import Relationship, SQLModel, Field, VARCHAR, Column
+
+pwd_context = CryptContext(schemes=["bcrypt"])
+
+class UserOutput(SQLModel):
+    id: int
+    username: str
+
+
+class User(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    username: str = Field(sa_column=Column("username", VARCHAR, unique=True, index=True))
+    password_hash: str = ""
+
+    def set_password(self, password):
+        """ Setting the passwords actualy sets password_hash """
+        self.password_hash = pwd_context.hash(password)
+
+    def verify_password(self, password):
+        """ Verify given password by hashing and comparing to password_hash """
+        return pwd_context.verify(password, self.password_hash)
 
 
 class TripInput(SQLModel):
